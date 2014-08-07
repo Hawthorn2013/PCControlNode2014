@@ -18,13 +18,11 @@ namespace PCControlNode2014
     {
         UdpClient udpClient1;
         Thread threadReceiveData;
-        Thread threadTestOutPut;
         Thread threadSolveData;
         ConcurrentQueue<Byte> receiveDataQueue;
         ConcurrentQueue<List<Byte>> receiveCmdQueue;
-        delegate void tbDelegate(TextBox textBox, Byte appendData);
-        Byte srcNetAddress = 0x07;
-        Byte desNetAddress = 0x0A;
+        delegate void tbDelegate_1(TextBox textBox, Byte appendData);
+        delegate void tbDelegate_2(TextBox textBox, List<Byte> appendData);
         const int FrameMaxLength = 32;
 
         public Form1()
@@ -40,17 +38,13 @@ namespace PCControlNode2014
             threadReceiveData.IsBackground = true;
             threadReceiveData.Start();
 
-#if true
-            threadTestOutPut = new Thread(() => TestOutput(tbReceiveDataTest, receiveDataQueue));
-            threadTestOutPut.IsBackground = true;
-            threadTestOutPut.Start();
-#endif
-
-#if false
             threadSolveData = new Thread(() => SolveData(receiveDataQueue, receiveCmdQueue));
             threadSolveData.IsBackground = true;
             threadSolveData.Start();
-#endif
+
+            threadSolveData = new Thread(() => TestOutputFrame(tbReceiveDataTest, receiveCmdQueue));
+            threadSolveData.IsBackground = true;
+            threadSolveData.Start();
         }
 
         private void btnSendTest_Click(object sender, EventArgs e)
@@ -62,7 +56,6 @@ namespace PCControlNode2014
         private void ReceiveThread()
         {
             IPEndPoint iPEndPoint_1 = new IPEndPoint(IPAddress.Parse("192.168.7.255"), 4567);
-            IPEndPoint iPEndPoint_2 = new IPEndPoint(IPAddress.Parse("192.168.7.0"), 4567);
             while (true)
             {
                 byte[] Data1 = udpClient1.Receive(ref iPEndPoint_1);
@@ -70,13 +63,24 @@ namespace PCControlNode2014
                 {
                     receiveDataQueue.Enqueue(data);
                 }
-                Thread.Sleep(50);
+                //Thread.Sleep(50);
             }
         }
 
         void AppendTextbox(TextBox textbox, Byte appendData)
         {
             textbox.Text += appendData.ToString("x2") + "\t";
+            textbox.SelectionStart = textbox.TextLength;
+            textbox.ScrollToCaret();
+        }
+
+        void AppendTextbox_2(TextBox textbox, List<Byte> appendData)
+        {
+            foreach (Byte tmpByte in appendData)
+            {
+                textbox.Text += tmpByte.ToString("x2");
+            }
+            textbox.Text += "\r\n";
             textbox.SelectionStart = textbox.TextLength;
             textbox.ScrollToCaret();
         }
@@ -88,9 +92,22 @@ namespace PCControlNode2014
                 Byte tmpByte;
                 while (concurrentQueue.TryDequeue(out tmpByte))
                 {
-                    Invoke(new tbDelegate(AppendTextbox), new object[] { textbox, tmpByte });
+                    Invoke(new tbDelegate_1(AppendTextbox), new object[] { textbox, tmpByte });
                 }
-                Thread.Sleep(50);
+                //Thread.Sleep(50);
+            }
+        }
+
+        void TestOutputFrame(TextBox textbox, ConcurrentQueue<List<Byte>> concurrentQueue)
+        {
+            while (true)
+            {
+                List<Byte> tmpBytes;
+                while (concurrentQueue.TryDequeue(out tmpBytes))
+                {
+                    Invoke(new tbDelegate_2(AppendTextbox_2), new object[] { textbox, new List<Byte>(tmpBytes) });
+                }
+                //Thread.Sleep(50);
             }
         }
 
@@ -108,67 +125,78 @@ namespace PCControlNode2014
                     {
                         if (0xAA == tmpByte)
                         {
-                            frame[frame_site_cnt++] = tmpByte;
+                            frame.Add(tmpByte);
+                            frame_site_cnt++;
                         }
                     }
                     else if (1 == frame_site_cnt)	//接收帧头
                     {
                         if (0xBB == tmpByte)
                         {
-                            frame[frame_site_cnt++] = tmpByte;
+                            frame.Add(tmpByte);
+                            frame_site_cnt++;
                         }
                         else
                         {
                             frame_site_cnt = 0;
+                            frame.Clear();
                         }
                     }
                     else if (2 == frame_site_cnt)   //接收源地址
                     {
                         if (true)
                         {
-                            frame[frame_site_cnt++] = tmpByte;
+                            frame.Add(tmpByte);
+                            frame_site_cnt++;
                         }
                     }
                     else if (3 == frame_site_cnt)   //接收目的地址
                     {
                         if (true)
                         {
-                            frame[frame_site_cnt++] = tmpByte;
+                            frame.Add(tmpByte);
+                            frame_site_cnt++;
                         }
                     }
                     else if (4 == frame_site_cnt)   //接收长度
                     {
                         if (tmpByte + 6 < FrameMaxLength)
                         {
-                            frame[frame_site_cnt++] = tmpByte;
+                            frame.Add(tmpByte);
+                            frame_site_cnt++;
                         }
                         else
                         {
                             frame_site_cnt = 0;
+                            frame.Clear();
                         }
                     }
                     else if (frame_site_cnt > 4 && frame_site_cnt <= frame[4]+4)   //接收数据区
                     {
-                        frame[frame_site_cnt++] = tmpByte;
+                        frame.Add(tmpByte);
+                        frame_site_cnt++;
                     }
                     else if (frame[4] + 4 + 1 == frame_site_cnt)	//接收校验字节	
                     {
-                        frame[frame_site_cnt++] = tmpByte;
-                        List<Byte> checkData = new List<byte>(tmpByte);
+                        frame.Add(tmpByte);
+                        frame_site_cnt++;
+                        List<Byte> checkData = new List<byte>(frame);
                         checkData.RemoveAt(checkData.Count - 1);
                         checkData.RemoveRange(0, 2);
                         if (CheckSum(checkData) == tmpByte)
                         {
-                            des.Enqueue(frame);
+                            des.Enqueue(new List<Byte>(frame));
                             frame_site_cnt = 0;
+                            frame.Clear();
                         }
                         else
                         {
                             frame_site_cnt = 0;
+                            frame.Clear();
                         }
                     }
                 }
-                Thread.Sleep(50);
+                //Thread.Sleep(10);
             }
         }
 
