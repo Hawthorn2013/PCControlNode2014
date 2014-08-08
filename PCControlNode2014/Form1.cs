@@ -19,12 +19,13 @@ namespace PCControlNode2014
         UdpClient udpClient1;
         Thread threadReceiveAndSolveData;
         Thread threadOutputData;
+        Thread threadSolveFramePacket;
         ConcurrentQueue<Byte> receiveDataQueue;
-        ConcurrentQueue<List<Byte>> receiveDataQueue_2;
         ConcurrentQueue<List<Byte>> receiveCmdQueue;
         ConcurrentQueue<FramePacket> framePacketQueue;
         delegate void tbDelegate_1(TextBox textBox, Byte appendData);
         delegate void tbDelegate_2(TextBox textBox, List<Byte> appendData);
+        delegate void lvDelegate(ListViewItem lvi, ListView lv);
         const int FrameMaxLength = 32;
         public enum FramePacketType
         {
@@ -49,13 +50,17 @@ namespace PCControlNode2014
             framePacketQueue = new ConcurrentQueue<FramePacket>();
             udpClient1 = new UdpClient(4567);
 
-            threadReceiveAndSolveData = new Thread(() => ReceiveAndSolveData(framePacketQueue));
+            threadSolveFramePacket = new Thread(() => ReceiveAndSolveData(framePacketQueue));
+            threadSolveFramePacket.IsBackground = true;
+            threadSolveFramePacket.Start();
+
+            threadReceiveAndSolveData = new Thread(() => SolveFramePacket(framePacketQueue));
             threadReceiveAndSolveData.IsBackground = true;
             threadReceiveAndSolveData.Start();
 
-            threadOutputData = new Thread(() => TestOutputFrame_2(tbReceiveDataTest, framePacketQueue));
-            threadOutputData.IsBackground = true;
-            threadOutputData.Start();
+            //threadOutputData = new Thread(() => TestOutputFrame_2(tbReceiveDataTest, framePacketQueue));
+            //threadOutputData.IsBackground = true;
+            //threadOutputData.Start();
         }
 
         private void btnSendTest_Click(object sender, EventArgs e)
@@ -156,11 +161,30 @@ namespace PCControlNode2014
             }
         }
 
+        private void SolveFramePacket(ConcurrentQueue<FramePacket> queue)
+        {
+            while (true)
+            {
+                FramePacket framePacket;
+                while (queue.TryDequeue(out framePacket))
+                {
+                    ListViewItem lvi = new ListViewItem(framePacket.srcIP.ToString().Split('.')[3]);
+                    lvi.SubItems.Add(framePacket.frame[2].ToString("X2"));
+                    Invoke(new lvDelegate(AppendListView), new object[] { lvi, lvFrame });
+                }
+            }
+        }
+
         void AppendTextbox(TextBox textbox, Byte appendData)
         {
             textbox.Text += appendData.ToString("x2") + "\t";
             textbox.SelectionStart = textbox.TextLength;
             textbox.ScrollToCaret();
+        }
+
+        void AppendListView(ListViewItem lvi, ListView lv)
+        {
+            lv.Items.Add(lvi);
         }
 
         void AppendTextbox_2(TextBox textbox, List<Byte> appendData)
@@ -172,6 +196,10 @@ namespace PCControlNode2014
             textbox.Text += "\r\n";
             textbox.SelectionStart = textbox.TextLength;
             textbox.ScrollToCaret();
+
+            //System.Text.UnicodeEncoding converter = new UnicodeEncoding();
+            //textbox.Text += converter.GetString(appendData.ToArray<Byte>());
+            //textbox.Text += "\r\n";
         }
 
         void TestOutputFrame_2(TextBox textbox, ConcurrentQueue<FramePacket> queue)
@@ -181,7 +209,9 @@ namespace PCControlNode2014
                 FramePacket framePacket;
                 while (queue.TryDequeue(out framePacket))
                 {
-                    Invoke(new tbDelegate_2(AppendTextbox_2), new object[] { textbox, framePacket.frame });
+                    System.Text.UnicodeEncoding converter = new UnicodeEncoding();
+                    //Invoke(new tbDelegate_2(AppendTextbox_2), new object[] { textbox, framePacket.frame });
+                    //Invoke(new tbDelegate_2(AppendTextbox_2), new object[] { textbox, new List<Byte>(converter.GetBytes(framePacket.srcIP.ToString())) });
                 }
                 //Thread.Sleep(50);
             }

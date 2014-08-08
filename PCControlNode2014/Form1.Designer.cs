@@ -30,11 +30,17 @@
         {
             this.btnSendTest = new System.Windows.Forms.Button();
             this.tbReceiveDataTest = new System.Windows.Forms.TextBox();
+            this.lvFrame = new System.Windows.Forms.ListView();
+            this.srcIP = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.srcNO = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.desNO = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.CMD = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.detail = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SuspendLayout();
             // 
             // btnSendTest
             // 
-            this.btnSendTest.Location = new System.Drawing.Point(45, 22);
+            this.btnSendTest.Location = new System.Drawing.Point(503, 25);
             this.btnSendTest.Name = "btnSendTest";
             this.btnSendTest.Size = new System.Drawing.Size(75, 23);
             this.btnSendTest.TabIndex = 0;
@@ -44,17 +50,57 @@
             // 
             // tbReceiveDataTest
             // 
-            this.tbReceiveDataTest.Location = new System.Drawing.Point(45, 81);
+            this.tbReceiveDataTest.Location = new System.Drawing.Point(472, 78);
             this.tbReceiveDataTest.Multiline = true;
             this.tbReceiveDataTest.Name = "tbReceiveDataTest";
             this.tbReceiveDataTest.Size = new System.Drawing.Size(227, 109);
             this.tbReceiveDataTest.TabIndex = 2;
             // 
+            // lvFrame
+            // 
+            this.lvFrame.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.srcIP,
+            this.srcNO,
+            this.desNO,
+            this.CMD,
+            this.detail});
+            this.lvFrame.Location = new System.Drawing.Point(12, 12);
+            this.lvFrame.Name = "lvFrame";
+            this.lvFrame.Size = new System.Drawing.Size(371, 97);
+            this.lvFrame.TabIndex = 3;
+            this.lvFrame.UseCompatibleStateImageBehavior = false;
+            this.lvFrame.View = System.Windows.Forms.View.Details;
+            // 
+            // srcIP
+            // 
+            this.srcIP.Text = "srcIP";
+            this.srcIP.Width = 49;
+            // 
+            // srcNO
+            // 
+            this.srcNO.Text = "srcNO";
+            this.srcNO.Width = 47;
+            // 
+            // desNO
+            // 
+            this.desNO.Text = "desNO";
+            this.desNO.Width = 50;
+            // 
+            // CMD
+            // 
+            this.CMD.Text = "CMD";
+            this.CMD.Width = 50;
+            // 
+            // detail
+            // 
+            this.detail.Text = "detail";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 262);
+            this.ClientSize = new System.Drawing.Size(779, 262);
+            this.Controls.Add(this.lvFrame);
             this.Controls.Add(this.tbReceiveDataTest);
             this.Controls.Add(this.btnSendTest);
             this.Name = "Form1";
@@ -68,6 +114,12 @@
 
         private System.Windows.Forms.Button btnSendTest;
         private System.Windows.Forms.TextBox tbReceiveDataTest;
+        private System.Windows.Forms.ListView lvFrame;
+        private System.Windows.Forms.ColumnHeader srcIP;
+        private System.Windows.Forms.ColumnHeader srcNO;
+        private System.Windows.Forms.ColumnHeader desNO;
+        private System.Windows.Forms.ColumnHeader CMD;
+        private System.Windows.Forms.ColumnHeader detail;
     }
 }
 
