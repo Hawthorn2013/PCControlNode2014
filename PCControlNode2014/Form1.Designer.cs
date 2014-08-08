@@ -89,7 +89,7 @@
             // CMD
             // 
             this.CMD.Text = "CMD";
-            this.CMD.Width = 50;
+            this.CMD.Width = 86;
             // 
             // detail
             // 

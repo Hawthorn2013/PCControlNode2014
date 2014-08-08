@@ -27,6 +27,7 @@ namespace PCControlNode2014
         delegate void tbDelegate_2(TextBox textBox, List<Byte> appendData);
         delegate void lvDelegate(ListViewItem lvi, ListView lv);
         const int FrameMaxLength = 32;
+        Dictionary<UInt16, string> WiFiCMD;
         public enum FramePacketType
         {
             Correct,
@@ -54,13 +55,35 @@ namespace PCControlNode2014
             threadSolveFramePacket.IsBackground = true;
             threadSolveFramePacket.Start();
 
-            threadReceiveAndSolveData = new Thread(() => SolveFramePacket(framePacketQueue));
+            threadReceiveAndSolveData = new Thread(() => SolveFramePacket(framePacketQueue, lvFrame));
             threadReceiveAndSolveData.IsBackground = true;
             threadReceiveAndSolveData.Start();
 
             //threadOutputData = new Thread(() => TestOutputFrame_2(tbReceiveDataTest, framePacketQueue));
             //threadOutputData.IsBackground = true;
             //threadOutputData.Start();
+
+            WiFiCMD = new Dictionary<UInt16, string>();
+            WiFiCMD.Add(0x0001, "舵 目标");
+            WiFiCMD.Add(0x0002, "舵 P");
+            WiFiCMD.Add(0x0003, "舵 I");
+            WiFiCMD.Add(0x0004, "舵 D");
+            WiFiCMD.Add(0x0005, "电 目标");
+            WiFiCMD.Add(0x0006, "电 P");
+            WiFiCMD.Add(0x0007, "电 I");
+            WiFiCMD.Add(0x0008, "电 D");
+            WiFiCMD.Add(0x0009, "陀螺仪 开始");
+            WiFiCMD.Add(0x000A, "陀螺仪 停止");
+            WiFiCMD.Add(0x000B, "舵 中");
+            WiFiCMD.Add(0x000C, "舵 左");
+            WiFiCMD.Add(0x000D, "舵 右");
+            WiFiCMD.Add(0x000E, "舵 写");
+            WiFiCMD.Add(0x000F, "舵 发送");
+            WiFiCMD.Add(0x0010, "");
+            WiFiCMD.Add(0x0011, "获取 当前速度");
+            WiFiCMD.Add(0x0012, "停止获取 当前速度");
+
+            WiFiCMD.Add(0x0100, "赛场控制");
         }
 
         private void btnSendTest_Click(object sender, EventArgs e)
@@ -161,16 +184,34 @@ namespace PCControlNode2014
             }
         }
 
-        private void SolveFramePacket(ConcurrentQueue<FramePacket> queue)
+        private void SolveFramePacket(ConcurrentQueue<FramePacket> queue, ListView lv)
         {
             while (true)
             {
                 FramePacket framePacket;
                 while (queue.TryDequeue(out framePacket))
                 {
-                    ListViewItem lvi = new ListViewItem(framePacket.srcIP.ToString().Split('.')[3]);
-                    lvi.SubItems.Add(framePacket.frame[2].ToString("X2"));
-                    Invoke(new lvDelegate(AppendListView), new object[] { lvi, lvFrame });
+                    ListViewItem lvi = new ListViewItem(framePacket.srcIP.ToString().Split('.')[3]);    //源IP
+                    lvi.SubItems.Add("0x" + framePacket.frame[2].ToString("X2"));   //源设备
+                    lvi.SubItems.Add("0x" + framePacket.frame[3].ToString("X2"));   //目标设备
+                    UInt16 cmd = BitConverter.ToUInt16(new byte[] { framePacket.frame[6], framePacket.frame[5] }, 0);
+                    if (null != WiFiCMD[cmd])
+                    {
+                        lvi.SubItems.Add(WiFiCMD[cmd]);
+                    }
+                    else
+                    {
+                        lvi.SubItems.Add(cmd.ToString("X4"));
+                    }
+                    if (10 == framePacket.frame.Count && ( 0x0001 == cmd || 0x0002 == cmd || 0x0003 == cmd || 0x0004 == cmd ) )
+                    {
+                        lvi.SubItems.Add(BitConverter.ToUInt16(new byte[] { framePacket.frame[8], framePacket.frame[7] }, 0).ToString());
+                    }
+                    else if (10 == framePacket.frame.Count && (0x0005 == cmd || 0x0006 == cmd || 0x0007 == cmd || 0x0008 == cmd))
+                    {
+                        lvi.SubItems.Add(BitConverter.ToInt16(new byte[] { framePacket.frame[8], framePacket.frame[7] }, 0).ToString());
+                    }
+                    Invoke(new lvDelegate(AppendListView), new object[] { lvi, lv });
                 }
             }
         }
@@ -185,6 +226,7 @@ namespace PCControlNode2014
         void AppendListView(ListViewItem lvi, ListView lv)
         {
             lv.Items.Add(lvi);
+            lv.Items[lv.Items.Count - 1].EnsureVisible();
         }
 
         void AppendTextbox_2(TextBox textbox, List<Byte> appendData)
