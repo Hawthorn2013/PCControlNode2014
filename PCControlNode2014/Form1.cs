@@ -17,13 +17,27 @@ namespace PCControlNode2014
     public partial class Form1 : Form
     {
         UdpClient udpClient1;
-        Thread threadReceiveData;
-        Thread threadSolveData;
+        Thread threadReceiveAndSolveData;
+        Thread threadOutputData;
         ConcurrentQueue<Byte> receiveDataQueue;
+        ConcurrentQueue<List<Byte>> receiveDataQueue_2;
         ConcurrentQueue<List<Byte>> receiveCmdQueue;
+        ConcurrentQueue<FramePacket> framePacketQueue;
         delegate void tbDelegate_1(TextBox textBox, Byte appendData);
         delegate void tbDelegate_2(TextBox textBox, List<Byte> appendData);
         const int FrameMaxLength = 32;
+        public enum FramePacketType
+        {
+            Correct,
+            ChechSumError,
+            Uncompleted,
+        }
+        struct FramePacket
+        {
+            public FramePacketType type;
+            public IPAddress srcIP;
+            public List<Byte> frame;
+        }
 
         public Form1()
         {
@@ -32,19 +46,16 @@ namespace PCControlNode2014
             receiveDataQueue = new System.Collections.Concurrent.ConcurrentQueue<Byte>();
 
             receiveCmdQueue = new ConcurrentQueue<List<Byte>>();
+            framePacketQueue = new ConcurrentQueue<FramePacket>();
             udpClient1 = new UdpClient(4567);
 
-            threadReceiveData = new Thread(new ThreadStart(ReceiveThread));
-            threadReceiveData.IsBackground = true;
-            threadReceiveData.Start();
+            threadReceiveAndSolveData = new Thread(() => ReceiveAndSolveData(framePacketQueue));
+            threadReceiveAndSolveData.IsBackground = true;
+            threadReceiveAndSolveData.Start();
 
-            threadSolveData = new Thread(() => SolveData(receiveDataQueue, receiveCmdQueue));
-            threadSolveData.IsBackground = true;
-            threadSolveData.Start();
-
-            threadSolveData = new Thread(() => TestOutputFrame(tbReceiveDataTest, receiveCmdQueue));
-            threadSolveData.IsBackground = true;
-            threadSolveData.Start();
+            threadOutputData = new Thread(() => TestOutputFrame_2(tbReceiveDataTest, framePacketQueue));
+            threadOutputData.IsBackground = true;
+            threadOutputData.Start();
         }
 
         private void btnSendTest_Click(object sender, EventArgs e)
@@ -53,73 +64,15 @@ namespace PCControlNode2014
             udpClient1.Send(testBytes, testBytes.Length, new System.Net.IPEndPoint(IPAddress.Parse("192.168.7.255"), 4567));
         }
 
-        private void ReceiveThread()
+        private void ReceiveAndSolveData(ConcurrentQueue<FramePacket> queue)
         {
-            IPEndPoint iPEndPoint_1 = new IPEndPoint(IPAddress.Parse("192.168.7.255"), 4567);
+            IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Parse("192.168.7.255"), 4567);
             while (true)
             {
-                byte[] Data1 = udpClient1.Receive(ref iPEndPoint_1);
-                foreach (Byte data in Data1)
-                {
-                    receiveDataQueue.Enqueue(data);
-                }
-                //Thread.Sleep(50);
-            }
-        }
-
-        void AppendTextbox(TextBox textbox, Byte appendData)
-        {
-            textbox.Text += appendData.ToString("x2") + "\t";
-            textbox.SelectionStart = textbox.TextLength;
-            textbox.ScrollToCaret();
-        }
-
-        void AppendTextbox_2(TextBox textbox, List<Byte> appendData)
-        {
-            foreach (Byte tmpByte in appendData)
-            {
-                textbox.Text += tmpByte.ToString("x2");
-            }
-            textbox.Text += "\r\n";
-            textbox.SelectionStart = textbox.TextLength;
-            textbox.ScrollToCaret();
-        }
-
-        void TestOutput(TextBox textbox, ConcurrentQueue<Byte> concurrentQueue)
-        {
-            while (true)
-            {
-                Byte tmpByte;
-                while (concurrentQueue.TryDequeue(out tmpByte))
-                {
-                    Invoke(new tbDelegate_1(AppendTextbox), new object[] { textbox, tmpByte });
-                }
-                //Thread.Sleep(50);
-            }
-        }
-
-        void TestOutputFrame(TextBox textbox, ConcurrentQueue<List<Byte>> concurrentQueue)
-        {
-            while (true)
-            {
-                List<Byte> tmpBytes;
-                while (concurrentQueue.TryDequeue(out tmpBytes))
-                {
-                    Invoke(new tbDelegate_2(AppendTextbox_2), new object[] { textbox, new List<Byte>(tmpBytes) });
-                }
-                //Thread.Sleep(50);
-            }
-        }
-
-        void SolveData(ConcurrentQueue<Byte> src, ConcurrentQueue<List<Byte>> des)
-        {
-            //[不足]没有预定义表大小
-            int frame_site_cnt = 0;
-            List<Byte> frame = new List<byte>();
-            while (true)
-            {
-                Byte tmpByte;
-                while (src.TryDequeue(out tmpByte))
+                byte[] Data = udpClient1.Receive(ref iPEndPoint);
+                int frame_site_cnt = 0;
+                List<Byte> frame = new List<byte>();
+                foreach (Byte tmpByte in Data)
                 {
                     if (0 == frame_site_cnt)	//接收帧头
                     {
@@ -171,7 +124,7 @@ namespace PCControlNode2014
                             frame.Clear();
                         }
                     }
-                    else if (frame_site_cnt > 4 && frame_site_cnt <= frame[4]+4)   //接收数据区
+                    else if (frame_site_cnt > 4 && frame_site_cnt <= frame[4] + 4)   //接收数据区
                     {
                         frame.Add(tmpByte);
                         frame_site_cnt++;
@@ -185,7 +138,11 @@ namespace PCControlNode2014
                         checkData.RemoveRange(0, 2);
                         if (CheckSum(checkData) == tmpByte)
                         {
-                            des.Enqueue(new List<Byte>(frame));
+                            FramePacket framePacket;
+                            framePacket.type = FramePacketType.Correct;
+                            framePacket.srcIP = iPEndPoint.Address;
+                            framePacket.frame = new List<byte>(frame);
+                            queue.Enqueue(framePacket);
                             frame_site_cnt = 0;
                             frame.Clear();
                         }
@@ -196,7 +153,37 @@ namespace PCControlNode2014
                         }
                     }
                 }
-                //Thread.Sleep(10);
+            }
+        }
+
+        void AppendTextbox(TextBox textbox, Byte appendData)
+        {
+            textbox.Text += appendData.ToString("x2") + "\t";
+            textbox.SelectionStart = textbox.TextLength;
+            textbox.ScrollToCaret();
+        }
+
+        void AppendTextbox_2(TextBox textbox, List<Byte> appendData)
+        {
+            foreach (Byte tmpByte in appendData)
+            {
+                textbox.Text += tmpByte.ToString("x2");
+            }
+            textbox.Text += "\r\n";
+            textbox.SelectionStart = textbox.TextLength;
+            textbox.ScrollToCaret();
+        }
+
+        void TestOutputFrame_2(TextBox textbox, ConcurrentQueue<FramePacket> queue)
+        {
+            while (true)
+            {
+                FramePacket framePacket;
+                while (queue.TryDequeue(out framePacket))
+                {
+                    Invoke(new tbDelegate_2(AppendTextbox_2), new object[] { textbox, framePacket.frame });
+                }
+                //Thread.Sleep(50);
             }
         }
 
