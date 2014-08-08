@@ -203,13 +203,20 @@ namespace PCControlNode2014
                     {
                         lvi.SubItems.Add(cmd.ToString("X4"));
                     }
-                    if (10 == framePacket.frame.Count && ( 0x0001 == cmd || 0x0002 == cmd || 0x0003 == cmd || 0x0004 == cmd ) )
+                    if (10 == framePacket.frame.Count && ( 0x0001 == cmd || 0x0002 == cmd || 0x0003 == cmd || 0x0004 == cmd || 0x000B == cmd || 0x000C == cmd || 0x000D == cmd ) )
                     {
                         lvi.SubItems.Add(BitConverter.ToUInt16(new byte[] { framePacket.frame[8], framePacket.frame[7] }, 0).ToString());
                     }
                     else if (10 == framePacket.frame.Count && (0x0005 == cmd || 0x0006 == cmd || 0x0007 == cmd || 0x0008 == cmd))
                     {
                         lvi.SubItems.Add(BitConverter.ToInt16(new byte[] { framePacket.frame[8], framePacket.frame[7] }, 0).ToString());
+                    }
+                    else if (14 == framePacket.frame.Count && 0x000F == cmd)    //显示舵机底层数据
+                    {
+                        lvi.SubItems.Add(BitConverter.ToUInt16(new byte[] { framePacket.frame[8], framePacket.frame[7] }, 0).ToString()
+                             + " " + BitConverter.ToUInt16(new byte[] { framePacket.frame[10], framePacket.frame[9] }, 0).ToString()
+                             + " " + BitConverter.ToUInt16(new byte[] { framePacket.frame[12], framePacket.frame[11] }, 0).ToString()
+                            );
                     }
                     Invoke(new lvDelegate(AppendListView), new object[] { lvi, lv });
                 }
