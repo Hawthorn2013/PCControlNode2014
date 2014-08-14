@@ -28,6 +28,39 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem(new string[] {
+            "1",
+            "offline",
+            ""}, -1);
+            System.Windows.Forms.ListViewItem listViewItem2 = new System.Windows.Forms.ListViewItem(new string[] {
+            "2",
+            "offline",
+            ""}, -1);
+            System.Windows.Forms.ListViewItem listViewItem3 = new System.Windows.Forms.ListViewItem(new string[] {
+            "3",
+            "offline",
+            ""}, -1);
+            System.Windows.Forms.ListViewItem listViewItem4 = new System.Windows.Forms.ListViewItem(new string[] {
+            "4",
+            "offline",
+            ""}, -1);
+            System.Windows.Forms.ListViewItem listViewItem5 = new System.Windows.Forms.ListViewItem(new string[] {
+            "5",
+            "offline",
+            ""}, -1);
+            System.Windows.Forms.ListViewItem listViewItem6 = new System.Windows.Forms.ListViewItem(new string[] {
+            "6",
+            "offline",
+            ""}, -1);
+            System.Windows.Forms.ListViewItem listViewItem7 = new System.Windows.Forms.ListViewItem(new string[] {
+            "7",
+            "offline",
+            ""}, -1);
+            System.Windows.Forms.ListViewItem listViewItem8 = new System.Windows.Forms.ListViewItem(new string[] {
+            "8",
+            "offline",
+            ""}, -1);
             this.btnSendTest = new System.Windows.Forms.Button();
             this.tbReceiveDataTest = new System.Windows.Forms.TextBox();
             this.lvFrame = new System.Windows.Forms.ListView();
@@ -36,6 +69,12 @@
             this.desNO = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.CMD = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.detail = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.btnTestPlay = new System.Windows.Forms.Button();
+            this.axWindowsMediaPlayer1 = new AxWMPLib.AxWindowsMediaPlayer();
+            this.lvDevicesStatus = new System.Windows.Forms.ListView();
+            this.device = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.status = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            ((System.ComponentModel.ISupportInitialize)(this.axWindowsMediaPlayer1)).BeginInit();
             this.SuspendLayout();
             // 
             // btnSendTest
@@ -95,16 +134,71 @@
             // 
             this.detail.Text = "detail";
             // 
+            // btnTestPlay
+            // 
+            this.btnTestPlay.Location = new System.Drawing.Point(584, 25);
+            this.btnTestPlay.Name = "btnTestPlay";
+            this.btnTestPlay.Size = new System.Drawing.Size(75, 23);
+            this.btnTestPlay.TabIndex = 4;
+            this.btnTestPlay.Text = "播放测试";
+            this.btnTestPlay.UseVisualStyleBackColor = true;
+            this.btnTestPlay.Click += new System.EventHandler(this.btnTestPlay_Click);
+            // 
+            // axWindowsMediaPlayer1
+            // 
+            this.axWindowsMediaPlayer1.Enabled = true;
+            this.axWindowsMediaPlayer1.Location = new System.Drawing.Point(534, 204);
+            this.axWindowsMediaPlayer1.Name = "axWindowsMediaPlayer1";
+            this.axWindowsMediaPlayer1.OcxState = ((System.Windows.Forms.AxHost.State)(resources.GetObject("axWindowsMediaPlayer1.OcxState")));
+            this.axWindowsMediaPlayer1.Size = new System.Drawing.Size(75, 23);
+            this.axWindowsMediaPlayer1.TabIndex = 5;
+            this.axWindowsMediaPlayer1.Visible = false;
+            // 
+            // lvDevicesStatus
+            // 
+            this.lvDevicesStatus.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.device,
+            this.status});
+            this.lvDevicesStatus.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
+            listViewItem1,
+            listViewItem2,
+            listViewItem3,
+            listViewItem4,
+            listViewItem5,
+            listViewItem6,
+            listViewItem7,
+            listViewItem8});
+            this.lvDevicesStatus.Location = new System.Drawing.Point(12, 115);
+            this.lvDevicesStatus.Name = "lvDevicesStatus";
+            this.lvDevicesStatus.Size = new System.Drawing.Size(371, 192);
+            this.lvDevicesStatus.TabIndex = 6;
+            this.lvDevicesStatus.UseCompatibleStateImageBehavior = false;
+            this.lvDevicesStatus.View = System.Windows.Forms.View.Details;
+            // 
+            // device
+            // 
+            this.device.Text = "device";
+            this.device.Width = 59;
+            // 
+            // status
+            // 
+            this.status.Text = "status";
+            this.status.Width = 122;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(779, 262);
+            this.ClientSize = new System.Drawing.Size(779, 342);
+            this.Controls.Add(this.lvDevicesStatus);
+            this.Controls.Add(this.axWindowsMediaPlayer1);
+            this.Controls.Add(this.btnTestPlay);
             this.Controls.Add(this.lvFrame);
             this.Controls.Add(this.tbReceiveDataTest);
             this.Controls.Add(this.btnSendTest);
             this.Name = "Form1";
             this.Text = "Form1";
+            ((System.ComponentModel.ISupportInitialize)(this.axWindowsMediaPlayer1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -120,6 +214,11 @@
         private System.Windows.Forms.ColumnHeader desNO;
         private System.Windows.Forms.ColumnHeader CMD;
         private System.Windows.Forms.ColumnHeader detail;
+        private System.Windows.Forms.Button btnTestPlay;
+        private AxWMPLib.AxWindowsMediaPlayer axWindowsMediaPlayer1;
+        private System.Windows.Forms.ListView lvDevicesStatus;
+        private System.Windows.Forms.ColumnHeader status;
+        private System.Windows.Forms.ColumnHeader device;
     }
 }
 

@@ -11,6 +11,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Collections.Concurrent;
+using System.Timers;
 
 namespace PCControlNode2014
 {
@@ -20,14 +21,17 @@ namespace PCControlNode2014
         Thread threadReceiveAndSolveData;
         Thread threadOutputData;
         Thread threadSolveFramePacket;
+        System.Timers.Timer timer1;
         ConcurrentQueue<Byte> receiveDataQueue;
         ConcurrentQueue<List<Byte>> receiveCmdQueue;
         ConcurrentQueue<FramePacket> framePacketQueue;
         delegate void tbDelegate_1(TextBox textBox, Byte appendData);
         delegate void tbDelegate_2(TextBox textBox, List<Byte> appendData);
         delegate void lvDelegate(ListViewItem lvi, ListView lv);
+        delegate void lvDelegate_2(List<DeviceStatus> dss, ListView lv);
         const int FrameMaxLength = 32;
         Dictionary<UInt16, string> WiFiCMD;
+        List<DeviceStatus> devicesStatus;
         public enum FramePacketType
         {
             Correct,
@@ -45,8 +49,17 @@ namespace PCControlNode2014
         {
             InitializeComponent();
 
-            receiveDataQueue = new System.Collections.Concurrent.ConcurrentQueue<Byte>();
+            //lvDevicesStatus.Items.Add();
 
+            receiveDataQueue = new System.Collections.Concurrent.ConcurrentQueue<Byte>();
+            devicesStatus = new List<DeviceStatus>(0x0100);
+            for (int i = 0; i < 0x0100; i++)
+            {
+                DeviceStatus ds = new DeviceStatus();
+                ds.deviceNO = (Byte)i;
+                ds.lastTime = DateTime.Now;
+                devicesStatus.Add(ds);
+            }
             receiveCmdQueue = new ConcurrentQueue<List<Byte>>();
             framePacketQueue = new ConcurrentQueue<FramePacket>();
             udpClient1 = new UdpClient(4567);
@@ -55,7 +68,7 @@ namespace PCControlNode2014
             threadSolveFramePacket.IsBackground = true;
             threadSolveFramePacket.Start();
 
-            threadReceiveAndSolveData = new Thread(() => SolveFramePacket(framePacketQueue, lvFrame));
+            threadReceiveAndSolveData = new Thread(() => SolveFramePacket(framePacketQueue, lvFrame, lvDevicesStatus));
             threadReceiveAndSolveData.IsBackground = true;
             threadReceiveAndSolveData.Start();
 
@@ -63,6 +76,11 @@ namespace PCControlNode2014
             //threadOutputData.IsBackground = true;
             //threadOutputData.Start();
 
+            timer1 = new System.Timers.Timer(1000);
+            timer1.AutoReset = true;
+            //() => UpdateLvDevicesStatus(devicesStatus, lvDevicesStatus)
+            timer1.Elapsed += new ElapsedEventHandler(timeArrive);
+            timer1.Enabled = true;
             WiFiCMD = new Dictionary<UInt16, string>();
             WiFiCMD.Add(0x0001, "舵 目标");
             WiFiCMD.Add(0x0002, "舵 P");
@@ -184,7 +202,7 @@ namespace PCControlNode2014
             }
         }
 
-        private void SolveFramePacket(ConcurrentQueue<FramePacket> queue, ListView lv)
+        private void SolveFramePacket(ConcurrentQueue<FramePacket> queue, ListView tmpLvFrame, ListView tmpLvDevicesStatus)
         {
             while (true)
             {
@@ -193,6 +211,7 @@ namespace PCControlNode2014
                 {
                     ListViewItem lvi = new ListViewItem(framePacket.srcIP.ToString().Split('.')[3]);    //源IP
                     lvi.SubItems.Add("0x" + framePacket.frame[2].ToString("X2"));   //源设备
+                    devicesStatus[framePacket.frame[2]].lastTime = DateTime.Now;    //更新设备时间
                     lvi.SubItems.Add("0x" + framePacket.frame[3].ToString("X2"));   //目标设备
                     UInt16 cmd = BitConverter.ToUInt16(new byte[] { framePacket.frame[6], framePacket.frame[5] }, 0);
                     if (null != WiFiCMD[cmd])
@@ -218,8 +237,18 @@ namespace PCControlNode2014
                              + " " + BitConverter.ToUInt16(new byte[] { framePacket.frame[12], framePacket.frame[11] }, 0).ToString()
                             );
                     }
-                    Invoke(new lvDelegate(AppendListView), new object[] { lvi, lv });
+                    else if (14 == framePacket.frame.Count && 0x0014 == cmd)    //获取陀螺仪数据积分值
+                    {
+                        lvi.SubItems.Add(BitConverter.ToInt16(new byte[] { framePacket.frame[8], framePacket.frame[7] }, 0).ToString()
+                             + " " + BitConverter.ToInt16(new byte[] { framePacket.frame[10], framePacket.frame[9] }, 0).ToString()
+                             + " " + BitConverter.ToInt16(new byte[] { framePacket.frame[12], framePacket.frame[11] }, 0).ToString()
+                            );
+                    }
+                    Invoke(new lvDelegate(AppendListView), new object[] { lvi, tmpLvFrame });
+                    Invoke(new lvDelegate_2(UpdateLvDevicesStatus), new object[] { devicesStatus, lvDevicesStatus });
                 }
+                //Invoke(new lvDelegate_2(UpdateLvDevicesStatus), new object[] { devicesStatus, lvDevicesStatus });
+                //Thread.Sleep(10);
             }
         }
 
@@ -251,6 +280,28 @@ namespace PCControlNode2014
             //textbox.Text += "\r\n";
         }
 
+        void timeArrive(object source, System.Timers.ElapsedEventArgs e)    //更新设备状态
+        {
+            Invoke(new lvDelegate_2(UpdateLvDevicesStatus), new object[] { devicesStatus, lvDevicesStatus });
+        }
+
+        void UpdateLvDevicesStatus(List<DeviceStatus> dss, ListView tmpLvDevicesStatus)
+        {
+            foreach (ListViewItem lvi in tmpLvDevicesStatus.Items)
+            {
+                DateTime dt = new DateTime();
+                dt = dss[Convert.ToUInt16(lvi.Text)].lastTime;
+                if (dt.AddSeconds(3) < DateTime.Now)
+                {
+                    lvi.SubItems[1].Text = "offline";
+                }
+                else
+                {
+                    lvi.SubItems[1].Text = "online";
+                }
+            }
+        }
+
         void TestOutputFrame_2(TextBox textbox, ConcurrentQueue<FramePacket> queue)
         {
             while (true)
@@ -276,5 +327,26 @@ namespace PCControlNode2014
             }
             return sum;
         }
+
+        private void btnTestPlay_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofDialog = new OpenFileDialog();
+            ofDialog.AddExtension = true;
+            ofDialog.CheckFileExists = true;
+            ofDialog.CheckPathExists = true;
+            ofDialog.Filter = "VCD文件(*.dat)|*.dat|Audio文件(*.avi)|*.avi|WAV文件(*.wav)|*.wav|MP3文件(*.mp3)|*.mp3|所有文件 (*.*)|*.*";
+            ofDialog.DefaultExt = "*.mp3";
+            if(ofDialog.ShowDialog() == DialogResult.OK)
+            {
+                this.axWindowsMediaPlayer1.URL = ofDialog.FileName;
+            }  
+        }
+    }
+
+
+    class DeviceStatus
+    {
+        public Byte deviceNO;
+        public DateTime lastTime;
     }
 }
