@@ -100,6 +100,8 @@ namespace PCControlNode2014
             WiFiCMD.Add(0x0010, "");
             WiFiCMD.Add(0x0011, "获取 当前速度");
             WiFiCMD.Add(0x0012, "停止获取 当前速度");
+            WiFiCMD.Add(0x0014, "获取 陀螺积分");
+            WiFiCMD.Add(0x0015, "停止获取 陀螺积分");
 
             WiFiCMD.Add(0x0100, "赛场控制");
         }
@@ -340,6 +342,36 @@ namespace PCControlNode2014
             {
                 this.axWindowsMediaPlayer1.URL = ofDialog.FileName;
             }  
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if ("" == comboBox1.Text)
+            {
+                return;
+            }
+            byte[] testBytes = { 0xAA, 0xBB, 0x07, 0x00, 0x02, 0x00, 0x14, 0x00 };
+            testBytes[3] = Convert.ToByte(comboBox1.Text);
+            List<Byte> tmpList = new List<byte>(testBytes);
+            tmpList.RemoveAt(7);
+            tmpList.RemoveRange(0, 2);
+            testBytes[7] = CheckSum(tmpList);
+            udpClient1.Send(testBytes, testBytes.Length, new System.Net.IPEndPoint(IPAddress.Parse("192.168.7.255"), 4567));
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if ("" == comboBox1.Text)
+            {
+                return;
+            }
+            byte[] testBytes = { 0xAA, 0xBB, 0x07, 0x00, 0x02, 0x00, 0x15, 0x00 };
+            testBytes[3] = Convert.ToByte(comboBox1.Text);
+            List<Byte> tmpList = new List<byte>(testBytes);
+            tmpList.RemoveAt(7);
+            tmpList.RemoveRange(0, 2);
+            testBytes[7] = CheckSum(tmpList);
+            udpClient1.Send(testBytes, testBytes.Length, new System.Net.IPEndPoint(IPAddress.Parse("192.168.7.255"), 4567));
         }
     }
 
