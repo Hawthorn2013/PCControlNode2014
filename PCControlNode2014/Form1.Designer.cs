@@ -29,35 +29,35 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            System.Windows.Forms.ListViewItem listViewItem25 = new System.Windows.Forms.ListViewItem(new string[] {
+            System.Windows.Forms.ListViewItem listViewItem9 = new System.Windows.Forms.ListViewItem(new string[] {
             "1",
             "offline",
             ""}, -1);
-            System.Windows.Forms.ListViewItem listViewItem26 = new System.Windows.Forms.ListViewItem(new string[] {
+            System.Windows.Forms.ListViewItem listViewItem10 = new System.Windows.Forms.ListViewItem(new string[] {
             "2",
             "offline",
             ""}, -1);
-            System.Windows.Forms.ListViewItem listViewItem27 = new System.Windows.Forms.ListViewItem(new string[] {
+            System.Windows.Forms.ListViewItem listViewItem11 = new System.Windows.Forms.ListViewItem(new string[] {
             "3",
             "offline",
             ""}, -1);
-            System.Windows.Forms.ListViewItem listViewItem28 = new System.Windows.Forms.ListViewItem(new string[] {
+            System.Windows.Forms.ListViewItem listViewItem12 = new System.Windows.Forms.ListViewItem(new string[] {
             "4",
             "offline",
             ""}, -1);
-            System.Windows.Forms.ListViewItem listViewItem29 = new System.Windows.Forms.ListViewItem(new string[] {
+            System.Windows.Forms.ListViewItem listViewItem13 = new System.Windows.Forms.ListViewItem(new string[] {
             "5",
             "offline",
             ""}, -1);
-            System.Windows.Forms.ListViewItem listViewItem30 = new System.Windows.Forms.ListViewItem(new string[] {
+            System.Windows.Forms.ListViewItem listViewItem14 = new System.Windows.Forms.ListViewItem(new string[] {
             "6",
             "offline",
             ""}, -1);
-            System.Windows.Forms.ListViewItem listViewItem31 = new System.Windows.Forms.ListViewItem(new string[] {
+            System.Windows.Forms.ListViewItem listViewItem15 = new System.Windows.Forms.ListViewItem(new string[] {
             "7",
             "offline",
             ""}, -1);
-            System.Windows.Forms.ListViewItem listViewItem32 = new System.Windows.Forms.ListViewItem(new string[] {
+            System.Windows.Forms.ListViewItem listViewItem16 = new System.Windows.Forms.ListViewItem(new string[] {
             "8",
             "offline",
             ""}, -1);
@@ -78,6 +78,9 @@
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.button2 = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.btnSendRFID_4_5_1 = new System.Windows.Forms.Button();
+            this.btnSendRFID_2_5_1 = new System.Windows.Forms.Button();
+            this.btnSendRFID_3_3_2 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.axWindowsMediaPlayer1)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -165,14 +168,14 @@
             this.device,
             this.status});
             this.lvDevicesStatus.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
-            listViewItem25,
-            listViewItem26,
-            listViewItem27,
-            listViewItem28,
-            listViewItem29,
-            listViewItem30,
-            listViewItem31,
-            listViewItem32});
+            listViewItem9,
+            listViewItem10,
+            listViewItem11,
+            listViewItem12,
+            listViewItem13,
+            listViewItem14,
+            listViewItem15,
+            listViewItem16});
             this.lvDevicesStatus.Location = new System.Drawing.Point(12, 115);
             this.lvDevicesStatus.Name = "lvDevicesStatus";
             this.lvDevicesStatus.Size = new System.Drawing.Size(371, 192);
@@ -236,11 +239,44 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "groupBox1";
             // 
+            // btnSendRFID_4_5_1
+            // 
+            this.btnSendRFID_4_5_1.Location = new System.Drawing.Point(13, 346);
+            this.btnSendRFID_4_5_1.Name = "btnSendRFID_4_5_1";
+            this.btnSendRFID_4_5_1.Size = new System.Drawing.Size(351, 23);
+            this.btnSendRFID_4_5_1.TabIndex = 11;
+            this.btnSendRFID_4_5_1.Text = "防止 车4 上XX桥";
+            this.btnSendRFID_4_5_1.UseVisualStyleBackColor = true;
+            this.btnSendRFID_4_5_1.Click += new System.EventHandler(this.btnSendRFID_4_5_1_Click);
+            // 
+            // btnSendRFID_2_5_1
+            // 
+            this.btnSendRFID_2_5_1.Location = new System.Drawing.Point(12, 375);
+            this.btnSendRFID_2_5_1.Name = "btnSendRFID_2_5_1";
+            this.btnSendRFID_2_5_1.Size = new System.Drawing.Size(351, 23);
+            this.btnSendRFID_2_5_1.TabIndex = 12;
+            this.btnSendRFID_2_5_1.Text = "防止 车2 上XX桥";
+            this.btnSendRFID_2_5_1.UseVisualStyleBackColor = true;
+            this.btnSendRFID_2_5_1.Click += new System.EventHandler(this.btnSendRFID_2_5_1_Click);
+            // 
+            // btnSendRFID_3_3_2
+            // 
+            this.btnSendRFID_3_3_2.Location = new System.Drawing.Point(12, 404);
+            this.btnSendRFID_3_3_2.Name = "btnSendRFID_3_3_2";
+            this.btnSendRFID_3_3_2.Size = new System.Drawing.Size(351, 23);
+            this.btnSendRFID_3_3_2.TabIndex = 13;
+            this.btnSendRFID_3_3_2.Text = "车3 拉起吊桥";
+            this.btnSendRFID_3_3_2.UseVisualStyleBackColor = true;
+            this.btnSendRFID_3_3_2.Click += new System.EventHandler(this.btnSendRFID_3_3_2_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(779, 342);
+            this.ClientSize = new System.Drawing.Size(779, 522);
+            this.Controls.Add(this.btnSendRFID_3_3_2);
+            this.Controls.Add(this.btnSendRFID_2_5_1);
+            this.Controls.Add(this.btnSendRFID_4_5_1);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.lvDevicesStatus);
             this.Controls.Add(this.axWindowsMediaPlayer1);
@@ -276,6 +312,9 @@
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Button btnSendRFID_4_5_1;
+        private System.Windows.Forms.Button btnSendRFID_2_5_1;
+        private System.Windows.Forms.Button btnSendRFID_3_3_2;
     }
 }
 

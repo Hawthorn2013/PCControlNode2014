@@ -216,7 +216,7 @@ namespace PCControlNode2014
                     devicesStatus[framePacket.frame[2]].lastTime = DateTime.Now;    //更新设备时间
                     lvi.SubItems.Add("0x" + framePacket.frame[3].ToString("X2"));   //目标设备
                     UInt16 cmd = BitConverter.ToUInt16(new byte[] { framePacket.frame[6], framePacket.frame[5] }, 0);
-                    if (null != WiFiCMD[cmd])
+                    if (WiFiCMD.ContainsKey(cmd))
                     {
                         lvi.SubItems.Add(WiFiCMD[cmd]);
                     }
@@ -372,6 +372,51 @@ namespace PCControlNode2014
             tmpList.RemoveRange(0, 2);
             testBytes[7] = CheckSum(tmpList);
             udpClient1.Send(testBytes, testBytes.Length, new System.Net.IPEndPoint(IPAddress.Parse("192.168.7.255"), 4567));
+        }
+
+        void generate_remote_frame_2(Byte scr, Byte des, UInt16 cmd, Byte length, Byte[] data)
+        {
+            List<Byte> send = new List<Byte>();
+            send.Add(0xAA);
+            send.Add(0xBB);
+            send.Add(scr);
+            send.Add(des);
+            send.Add((Byte)(length + (Byte)2));
+            send.Add((Byte)(cmd>>8));
+            send.Add((Byte)cmd);
+            foreach (Byte b in data)
+            {
+                send.Add(b);
+            }
+            List<Byte> tmpList = new List<byte>(send);
+            tmpList.RemoveRange(0, 2);
+            send.Add(CheckSum(tmpList));
+            udpClient1.Send(send.ToArray(), send.Count, new System.Net.IPEndPoint(IPAddress.Parse("192.168.7.255"), 4567));
+        }
+
+        void send_RFID_cmd(Byte des, UInt32 cardID)
+        {
+            Byte[] data = { 0x00, 0x00, 0x00, 0x00 };
+            data[0] = (Byte)(cardID >> 24);
+            data[1] = (Byte)(cardID >> 16);
+            data[2] = (Byte)(cardID >> 8);
+            data[3] = (Byte)(cardID);
+            generate_remote_frame_2(7, des, 0x0200, (Byte)(data.Length), data);
+        }
+
+        private void btnSendRFID_4_5_1_Click(object sender, EventArgs e)
+        {
+            send_RFID_cmd(4, 0xDAA23548);
+        }
+
+        private void btnSendRFID_2_5_1_Click(object sender, EventArgs e)
+        {
+            send_RFID_cmd(2, 0xDAA23548);
+        }
+
+        private void btnSendRFID_3_3_2_Click(object sender, EventArgs e)
+        {
+            send_RFID_cmd(3, 0x24572C52);
         }
     }
 
